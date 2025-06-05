@@ -2,15 +2,16 @@ package org.example;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
-    private final static long maxEven = 1001;
-    private final static long maxOdd = 1000;
+    private final static int maxEven = 1001;
+    private final static int maxOdd = 1000;
 
     private final static Object lock = new Object();
     private static boolean turnFlag = false;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         Runnable evenRunnable = () -> {
@@ -20,8 +21,8 @@ public class Main {
                         try {
                             lock.wait();
                         } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+                            Thread.currentThread().interrupt();
+                            return;                        }
                     }
                     System.out.println(Thread.currentThread().getName() + ": " + i);
                     turnFlag = true;
@@ -51,5 +52,6 @@ public class Main {
         executorService.execute(oddRunnable);
 
         executorService.shutdown();
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
     }
 }
